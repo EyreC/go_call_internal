@@ -34,8 +34,10 @@ var httpClient *http.Client
 
 func getUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	slog.Info("getUser request received", "id", id)
 	_, err := strconv.Atoi(id)
 	if err != nil {
+		slog.Warn("invalid user id", "id", id, "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -44,21 +46,24 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	internalPort := ":" + internalPortNumber
 	resp, httpErr := httpClient.Get(baseUrl + internalPort + "/users/" + id)
 	if httpErr != nil {
+		slog.Error("failed to fetch user from internal service", "id", id, "error", httpErr)
 		http.Error(w, httpErr.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
 	bytes, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
+		slog.Error("failed to read response body", "id", id, "error", readErr)
 		http.Error(w, readErr.Error(), http.StatusInternalServerError)
 	}
+	slog.Info("getUser request completed", "id", id, "status", resp.StatusCode)
 	w.Header().Set("content-type", "application/json")
 	w.Write(bytes)
 }
 func createServer() *http.Server {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET users/{id}", getUser)
+	mux.HandleFunc("GET /users/{id}", getUser)
 	portNumber := os.Getenv("PORT")
 	port := ":" + portNumber
 	server := http.Server{

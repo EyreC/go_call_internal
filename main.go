@@ -40,7 +40,9 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	baseUrl := os.Getenv("INTERNAL_GO_URL")
-	resp, httpErr := httpClient.Get(baseUrl + "/users/" + id)
+	internalPortNumber := os.Getenv("INTERNAL_GO_PORT")
+	internalPort := ":" + internalPortNumber
+	resp, httpErr := httpClient.Get(baseUrl + internalPort + "/users/" + id)
 	if httpErr != nil {
 		http.Error(w, httpErr.Error(), http.StatusInternalServerError)
 		return

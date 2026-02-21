@@ -57,9 +57,10 @@ func createServer() *http.Server {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET users/{id}", getUser)
-
+	portNumber := os.Getenv("PORT")
+	port := ":" + portNumber
 	server := http.Server{
-		Addr:              "80",
+		Addr:              port,
 		Handler:           mux,
 		ReadTimeout:       time.Duration(5) * time.Second,
 		ReadHeaderTimeout: time.Duration(2) * time.Second,
